@@ -32,16 +32,19 @@ app.get("/", (req, res) => {
 app.post("/create-order", async (req, res) => {
   const request = new paypal.orders.OrdersCreateRequest()
   const total = req.body.items.reduce((sum, item) => {
-    return sum + storeItems.get(item.id).price * item.quantity
+    return sum + storeItems.get(item.id).price * item.quantity // just total = item.price * number 
   }, 0)
-  request.prefer("return=representation")
+  request.prefer("return=representation")  // just a pop up thing to show 
+  
+  // the long list of purchase unit as below 
   request.requestBody({
-    intent: "CAPTURE",
+    intent: "CAPTURE",  // capture works to grab information details of the transaction 
     purchase_units: [
       {
         amount: {
           currency_code: "USD",
           value: total,
+          // break down is the details of the transaction. it can include taxes if there's any or discounts etc 
           breakdown: {
             item_total: {
               currency_code: "USD",
@@ -53,7 +56,7 @@ app.post("/create-order", async (req, res) => {
           const storeItem = storeItems.get(item.id)
           return {
             name: storeItem.name,
-            unit_amount: {
+            unit_amount: {     // individual cost 
               currency_code: "USD",
               value: storeItem.price,
             },
@@ -62,8 +65,10 @@ app.post("/create-order", async (req, res) => {
         }),
       },
     ],
+    // end 
   })
-
+  
+  // now make a request
   try {
     const order = await paypalClient.execute(request)
     res.json({ id: order.result.id })
